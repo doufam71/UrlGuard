@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>URL Guard — Verifica & Comparazione Anti-Phishing (IT / CZ)</title>
+
+  <!-- PWA & Mobile Home Screen Meta -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="URL Guard" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+
+  <!-- Google Fonts: Montserrat & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0b1120;
+      --surface: #111827;
+      --surface-2: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --safe: #10b981;
+      --safe-bg: rgba(16, 185, 129, 0.12);
+      --warn: #f59e0b;
+      --warn-bg: rgba(245, 158, 11, 0.14);
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      min-height: 100vh;
+      padding-bottom: 3rem;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 1.25rem 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .header-inner {
+      max-width: 1040px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #2563eb;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+    }
+
+    .brand h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .brand p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .badge-db {
+      background: rgba(59, 130, 246, 0.16);
+      border: 1px solid rgba(59, 130, 246, 0.4);
+      color: #93c5fd;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .container {
+      max-width: 1040px;
+      margin: 1.5rem auto;
+      padding: 0 1rem;
+    }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      background: var(--surface);
+      padding: 0.4rem;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      margin-bottom: 1.5rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.85rem;
+      padding: 0.7rem 0.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(59, 130, 246, 0.35);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .card h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .card-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #cbd5e1;
+      margin-bottom: 0.4rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input[type="text"], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 0.8rem 0.95rem;
+      font-size: 0.92rem;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--primary);
+    }
+
+    select {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 500;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-top: 0.9rem;
+    }
+
+    .btn {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.75rem 1.25rem;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--primary-hover); }
+
+    .btn-secondary {
+      background: var(--surface-2);
+      color: #e2e8f0;
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { background: #273549; }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.45rem;
+      margin-top: 0.85rem;
+    }
+
+    .chip {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      padding: 0.35rem 0.65rem;
+      border-radius: 8px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip:hover {
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 720px) {
+      .grid-2 { grid-template-columns: 1fr; }
+      .tab-btn { font-size: 0.78rem; padding: 0.65rem 0.35rem; }
+    }
+
+    /* Result Boxes */
+    .verdict {
+      border-radius: 12px;
+      padding: 1.1rem;
+      margin-bottom: 1rem;
+      border: 1px solid;
+    }
+
+    .verdict.safe { background: var(--safe-bg); border-color: var(--safe); }
+    .verdict.warn { background: var(--warn-bg); border-color: var(--warn); }
+    .verdict.danger { background: var(--danger-bg); border-color: var(--danger); }
+
+    .verdict-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      margin-bottom: 0.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .risk-pill {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.75rem;
+      margin: 1rem 0;
+    }
+
+    .part-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+    }
+
+    .part-box.highlight-owner {
+      border: 2px solid var(--primary);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .part-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .part-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      font-weight: 600;
+      word-break: break-all;
+    }
+
+    .findings-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+      margin-top: 0.75rem;
+    }
+
+    .findings-list li {
+      background: var(--bg);
+      border-left: 4px solid var(--border);
+      padding: 0.65rem 0.85rem;
+      border-radius: 6px;
+      font-size: 0.84rem;
+    }
+
+    .findings-list li.f-danger { border-left-color: var(--danger); }
+    .findings-list li.f-warn { border-left-color: var(--warn); }
+    .findings-list li.f-safe { border-left-color: var(--safe); }
+
+    .diff-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1rem;
+      word-break: break-all;
+      margin-top: 0.5rem;
+    }
+
+    .char-diff {
+      background: rgba(239, 68, 68, 0.35);
+      color: #fecaca;
+      border-bottom: 2px solid var(--danger);
+      padding: 0 2px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+
+    .char-same { color: #6ee7b7; }
+
+    .guide-item {
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 0;
+    }
+    .guide-item:last-child { border-bottom: none; }
+    .guide-item h3 { font-size: 0.95rem; color: #93c5fd; margin-bottom: 0.35rem; }
+    .guide-item p { font-size: 0.85rem; color: #cbd5e1; }
+    code {
+      background: var(--bg);
+      padding: 0.15rem 0.4rem;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      color: #fde68a;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">UG</div>
+        <div>
+          <h1>URL Guard IT / CZ</h1>
+          <p>Analisi Anti-Phishing, Punycode RFC 3492 &amp; Omoglifi</p>
+        </div>
+      </div>
+      <div class="badge-db" id="dbCounter">Database: 0 domini ufficiali</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('single', this)">1. Analisi Singolo URL</button>
+      <button class="tab-btn" onclick="switchTab('compare', this)">2. Comparazione Diretta</button>
+      <button class="tab-btn" onclick="switchTab('guide', this)">3. Guida &amp; Database</button>
+    </div>
+
+    <!-- TAB 1: SINGLE URL ANALYSIS -->
+    <section id="tab-single" class="panel active">
+      <div class="card">
+        <h2>Verifica qualsiasi link prima di aprirlo</h2>
+        <p class="card-sub">Incolla un URL ricevuto via SMS, WhatsApp o email. Il sistema isola il vero proprietario, decodifica il Punycode e controlla caratteri cirillici/omoglifi.</p>
+
+        <label for="singleUrlInput">URL da verificare</label>
+        <input type="text" id="singleUrlInput" placeholder="Es. https://www.pоstе.it/login oppure https://www.csob.cz" />
+
+        <div class="btn-row">
+          <button class="btn" onclick="runSingleAnalysis()">Analizza URL</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('singleUrlInput').value=''; document.getElementById('singleResult').innerHTML='';">Pulisci</button>
+        </div>
+
+        <div class="chips">
+          <span class="chip" onclick="testSingle('https://www.poste.it/')">✓ Poste.it (Reale)</span>
+          <span class="chip" onclick="testSingle('https://www.pоstе.it/login')">⚠ pоstе.it (Omoglifo Cirillico)</span>
+          <span class="chip" onclick="testSingle('https://www.xn--pst-0ma6h.it/')">⚠ xn--pst-0ma6h.it (Punycode)</span>
+          <span class="chip" onclick="testSingle('https://www.csas.cz/')">✓ Česká spořitelna (Reale CZ)</span>
+          <span class="chip" onclick="testSingle('https://identita.gov.cz.verifica-ucet.xyz/login')">⚠ Falso sottodominio CZ</span>
+          <span class="chip" onclick="testSingle('https://www.intesasanpaolo.com@192.168.1.50/login')">⚠ Trucco @ IP</span>
+        </div>
+      </div>
+
+      <div id="singleResult"></div>
+    </section>
+
+    <!-- TAB 2: DIRECT COMPARISON -->
+    <section id="tab-compare" class="panel">
+      <div class="card">
+        <h2>Confronto Sito Ufficiale vs Link Sospetto</h2>
+        <p class="card-sub">Seleziona un portale ufficiale dal menu (Italia o Repubblica Ceca) oppure digita qualsiasi sito reale per confrontarlo carattere per carattere.</p>
+
+        <div class="grid-2">
+          <div>
+            <label for="presetSelect">Scelta rapida sito ufficiale (IT / CZ)</label>
+            <select id="presetSelect" onchange="applyPreset()">
+              <option value="">-- Seleziona un sito ufficiale dal database --</option>
+            </select>
+
+            <label for="officialUrlInput">Sito Ufficiale / Vero</label>
+            <input type="text" id="officialUrlInput" placeholder="https://www.poste.it" />
+          </div>
+
+          <div>
+            <label for="suspectUrlInput" style="margin-top: 0;">Link Ricevuto / Sospetto</label>
+            <input type="text" id="suspectUrlInput" placeholder="https://www.pоstе.it/verifica" />
+            <p class="card-sub" style="margin-top: 0.65rem;">
+              Puoi inserire anche un dominio non presente nel database (es. quello della tua azienda o banca locale) per verificarne la somiglianza matematica.
+            </p>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" onclick="runComparison()">Confronta Domini</button>
+          <button class="btn btn-secondary" onclick="loadDemoCompare()">Carica Esempio Truffa</button>
+        </div>
+      </div>
+
+      <div id="compareResult"></div>
+    </section>
+
+    <!-- TAB 3: GUIDE & DATABASE -->
+    <section id="tab-guide" class="panel">
+      <div class="card">
+        <h2>Come riconoscere un sito truffa in 5 secondi</h2>
+        <div class="guide-item">
+          <h3>1. La regola della prima barra singola ( / )</h3>
+          <p>Tutto ciò che conta è ciò che si trova <strong>subito prima della prima barra singola <code>/</code></strong> (escluso <code>https://</code>). In <code>https://poste.it.sicurezza-clienti.xyz/accedi</code>, la parte prima di <code>/accedi</code> termina con <code>sicurezza-clienti.xyz</code>: quello è il vero proprietario, non Poste.</p>
+        </div>
+        <div class="guide-item">
+          <h3>2. Attacchi Omoglifi e Punycode (xn--)</h3>
+          <p>I truffatori registrano domini usando lettere dell'alfabeto cirillico o greco identiche a quelle latine (es. la <code>о</code> cirillica <code>U+043E</code> al posto della <code>o</code> latina). Dietro le quinte, il DNS li traduce in indirizzi che iniziano con <code>xn--</code>.</p>
+        </div>
+        <div class="guide-item">
+          <h3>3. Il trucco della chiocciola ( @ )</h3>
+          <p>In un indirizzo come <code>https://www.unicredit.it@sito-truffa.com</code>, il browser ignora tutto ciò che precede la <code>@</code> (trattandolo come nome utente) e ti porta realmente su <code>sito-truffa.com</code>.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Domini Ufficiali Inclusi nel Database (Italia &amp; Repubblica Ceca)</h2>
+        <p class="card-sub">Elenco completo dei portali verificati integrati nell'app:</p>
+        <div id="dbList" class="chips"></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // =========================================================================
+    // 1. DATABASE DOMINI UFFICIALI (ITALIA & REPUBBLICA CECA + GLOBAL)
+    // =========================================================================
+    const OFFICIAL_DOMAINS = [
+      // ITALIA - Pubblica Amministrazione & Servizi
+      { domain: "gov.it", name: "Governo Italiano", cat: "IT - PA" },
+      { domain: "agenziaentrate.gov.it", name: "Agenzia delle Entrate", cat: "IT - PA" },
+      { domain: "inps.gov.it", name: "INPS - Previdenza Sociale", cat: "IT - PA" },
+      { domain: "inail.it", name: "INAIL", cat: "IT - PA" },
+      { domain: "spid.gov.it", name: "SPID Identità Digitale", cat: "IT - PA" },
+      { domain: "pagopa.gov.it", name: "PagoPA", cat: "IT - PA" },
+      { domain: "io.italia.it", name: "App IO", cat: "IT - PA" },
+      { domain: "anpr.interno.it", name: "Anagrafe Nazionale (ANPR)", cat: "IT - PA" },
+      { domain: "salute.gov.it", name: "Ministero della Salute", cat: "IT - PA" },
+      { domain: "poliziadistato.it", name: "Polizia di Stato", cat: "IT - PA" },
+      { domain: "carabinieri.it", name: "Arma dei Carabinieri", cat: "IT - PA" },
+      { domain: "gdf.gov.it", name: "Guardia di Finanza", cat: "IT - PA" },
+      { domain: "aci.it", name: "Automobile Club d'Italia (ACI)", cat: "IT - Servizi" },
+      { domain: "ilportaledellautomobilista.it", name: "Portale dell'Automobilista", cat: "IT - PA" },
+      { domain: "trenitalia.com", name: "Trenitalia", cat: "IT - Trasporti" },
+      { domain: "italotreno.it", name: "Italo Treno", cat: "IT - Trasporti" },
+      { domain: "telepass.com", name: "Telepass", cat: "IT - Servizi" },
+
+      // ITALIA - Banche & Poste
+      { domain: "poste.it", name: "Poste Italiane", cat: "IT - Poste/Banca" },
+      { domain: "postepay.it", name: "Postepay", cat: "IT - Poste/Banca" },
+      { domain: "intesasanpaolo.com", name: "Intesa Sanpaolo", cat: "IT - Banca" },
+      { domain: "unicredit.it", name: "UniCredit Italia", cat: "IT - Banca" },
+      { domain: "bancobpm.it", name: "Banco BPM", cat: "IT - Banca" },
+      { domain: "mps.it", name: "Banca Monte dei Paschi di Siena", cat: "IT - Banca" },
+      { domain: "bper.it", name: "BPER Banca", cat: "IT - Banca" },
+      { domain: "finecobank.com", name: "Fineco Bank", cat: "IT - Banca" },
+      { domain: "mediolanum.it", name: "Banca Mediolanum", cat: "IT - Banca" },
+      { domain: "bnl.it", name: "BNL BNP Paribas", cat: "IT - Banca" },
+      { domain: "credit-agricole.it", name: "Crédit Agricole Italia", cat: "IT - Banca" },
+      { domain: "ing.it", name: "ING Italia", cat: "IT - Banca" },
+      { domain: "widiba.it", name: "Banca Widiba", cat: "IT - Banca" },
+      { domain: "illimitybank.com", name: "illimity Bank", cat: "IT - Banca" },
+      { domain: "nexi.it", name: "Nexi Payments", cat: "IT - Pagamenti" },
+      { domain: "satispay.com", name: "Satispay", cat: "IT - Pagamenti" },
+
+      // ITALIA - Telco & Energia & Corrieri
+      { domain: "tim.it", name: "TIM", cat: "IT - Telco" },
+      { domain: "vodafone.it", name: "Vodafone Italia", cat: "IT - Telco" },
+      { domain: "windtre.it", name: "WINDTRE", cat: "IT - Telco" },
+      { domain: "fastweb.it", name: "Fastweb", cat: "IT - Telco" },
+      { domain: "iliad.it", name: "Iliad Italia", cat: "IT - Telco" },
+      { domain: "enel.it", name: "Enel Energia", cat: "IT - Energia" },
+      { domain: "eniplenitude.com", name: "Eni Plenitude", cat: "IT - Energia" },
+      { domain: "brt.it", name: "BRT Corriere Espresso", cat: "IT - Corrieri" },
+      { domain: "gls-italy.com", name: "GLS Italy", cat: "IT - Corrieri" },
+      { domain: "sda.it", name: "SDA Express Courier", cat: "IT - Corrieri" },
+
+      // REPUBBLICA CECA - Pubblica Amministrazione & Governo
+      { domain: "gov.cz", name: "Portál veřejné správy ČR (Gov.cz)", cat: "CZ - PA" },
+      { domain: "vlada.cz", name: "Vláda České republiky", cat: "CZ - PA" },
+      { domain: "mzv.cz", name: "Ministerstvo zahraničních věcí ČR", cat: "CZ - PA" },
+      { domain: "mvcr.cz", name: "Ministerstvo vnitra ČR", cat: "CZ - PA" },
+      { domain: "mfcr.cz", name: "Ministerstvo financí ČR", cat: "CZ - PA" },
+      { domain: "mpsv.cz", name: "Ministerstvo práce a sociálních věcí", cat: "CZ - PA" },
+      { domain: "cssz.cz", name: "Česká správa sociálního zabezpečení (ČSSZ)", cat: "CZ - PA" },
+      { domain: "financnisprava.cz", name: "Finanční správa ČR", cat: "CZ - PA" },
+      { domain: "mojedane.cz", name: "Portál MOJE daně", cat: "CZ - PA" },
+      { domain: "identita.gov.cz", name: "Identita občana (NIA)", cat: "CZ - PA" },
+      { domain: "eidentita.cz", name: "eIdentita.cz", cat: "CZ - PA" },
+      { domain: "datoveschranky.info", name: "Datové schránky ČR", cat: "CZ - PA" },
+      { domain: "cuzk.cz", name: "Český úřad zeměměřický a katastrální", cat: "CZ - PA" },
+      { domain: "justice.cz", name: "Ministerstvo spravedlnosti / Justice.cz", cat: "CZ - PA" },
+      { domain: "policie.cz", name: "Policie České republiky", cat: "CZ - PA" },
+      { domain: "vzp.cz", name: "Všeobecná zdravotní pojišťovna (VZP)", cat: "CZ - Sanità" },
+      { domain: "cd.cz", name: "České dráhy", cat: "CZ - Trasporti" },
+      { domain: "pid.cz", name: "Pražská integrovaná doprava (PID)", cat: "CZ - Trasporti" },
+      { domain: "edalnice.cz", name: "Elektronická dálniční známka ČR", cat: "CZ - Trasporti" },
+
+      // REPUBBLICA CECA - Banche, Poste & Servizi
+      { domain: "ceskaposta.cz", name: "Česká pošta", cat: "CZ - Poste" },
+      { domain: "cpost.cz", name: "Česká pošta (cpost.cz)", cat: "CZ - Poste" },
+      { domain: "csas.cz", name: "Česká spořitelna", cat: "CZ - Banca" },
+      { domain: "csob.cz", name: "ČSOB (Československá obchodní banka)", cat: "CZ - Banca" },
+      { domain: "kb.cz", name: "Komerční banka", cat: "CZ - Banca" },
+      { domain: "airbank.cz", name: "Air Bank", cat: "CZ - Banca" },
+      { domain: "moneta.cz", name: "MONETA Money Bank", cat: "CZ - Banca" },
+      { domain: "rb.cz", name: "Raiffeisenbank ČR", cat: "CZ - Banca" },
+      { domain: "fio.cz", name: "Fio banka", cat: "CZ - Banca" },
+      { domain: "unicreditbank.cz", name: "UniCredit Bank ČR", cat: "CZ - Banca" },
+      { domain: "bankid.cz", name: "Bankovní identita (Bank iD)", cat: "CZ - Identità" },
+
+      // REPUBBLICA CECA - E-Commerce, Corrieri & Telco
+      { domain: "alza.cz", name: "Alza.cz", cat: "CZ - E-Commerce" },
+      { domain: "rohlik.cz", name: "Rohlík.cz", cat: "CZ - E-Commerce" },
+      { domain: "mall.cz", name: "Mall.cz", cat: "CZ - E-Commerce" },
+      { domain: "heureka.cz", name: "Heureka.cz", cat: "CZ - E-Commerce" },
+      { domain: "zasilkovna.cz", name: "Zásilkovna (Packeta)", cat: "CZ - Corrieri" },
+      { domain: "ppl.cz", name: "PPL CZ", cat: "CZ - Corrieri" },
+      { domain: "dpd.cz", name: "DPD Česká republika", cat: "CZ - Corrieri" },
+      { domain: "seznam.cz", name: "Seznam.cz", cat: "CZ - Portale" },
+      { domain: "o2.cz", name: "O2 Czech Republic", cat: "CZ - Telco" },
+      { domain: "t-mobile.cz", name: "T-Mobile Czech Republic", cat: "CZ - Telco" },
+      { domain: "vodafone.cz", name: "Vodafone Czech Republic", cat: "CZ - Telco" },
+      { domain: "cez.cz", name: "Skupina ČEZ", cat: "CZ - Energia" },
+
+      // INTERNAZIONALI
+      { domain: "paypal.com", name: "PayPal", cat: "Global" },
+      { domain: "amazon.it", name: "Amazon Italia", cat: "Global" },
+      { domain: "amazon.de", name: "Amazon Germania", cat: "Global" },
+      { domain: "apple.com", name: "Apple", cat: "Global" },
+      { domain: "microsoft.com", name: "Microsoft", cat: "Global" },
+      { domain: "google.com", name: "Google", cat: "Global" },
+      { domain: "whatsapp.com", name: "WhatsApp", cat: "Global" },
+      { domain: "netflix.com", name: "Netflix", cat: "Global" },
+      { domain: "dhl.com", name: "DHL Express", cat: "Global" },
+      { domain: "ups.com", name: "UPS", cat: "Global" },
+      { domain: "fedex.com", name: "FedEx", cat: "Global" },
+      { domain: "revolut.com", name: "Revolut", cat: "Global" }
+    ];
+
+    const HIGH_RISK_TLDS = [
+      "xyz", "top", "tk", "ml", "ga", "cf", "gq", "click", "link", "club",
+      "work", "buzz", "monster", "icu", "vip", "win", "bid", "loan", "shop", "online", "site", "info"
+    ];
+
+    // Mappa caratteri omoglifi (Cirillico, Greco, Latino esteso -> equivalente ASCII)
+    const HOMOGLYPH_MAP = {
+      'а': { ascii: 'a', script: 'Cirillico' }, // а
+      'А': { ascii: 'a', script: 'Cirillico' }, // А
+      'е': { ascii: 'e', script: 'Cirillico' }, // е
+      'Е': { ascii: 'e', script: 'Cirillico' }, // Е
+      'і': { ascii: 'i', script: 'Cirillico' }, // і
+      'І': { ascii: 'i', script: 'Cirillico' }, // І
+      'ӏ': { ascii: 'l', script: 'Cirillico' }, // ӏ
+      'о': { ascii: 'o', script: 'Cirillico' }, // о
+      'О': { ascii: 'o', script: 'Cirillico' }, // О
+      'р': { ascii: 'p', script: 'Cirillico' }, // р
+      'Р': { ascii: 'p', script: 'Cirillico' }, // Р
+      'с': { ascii: 'c', script: 'Cirillico' }, // с
+      'С': { ascii: 'c', script: 'Cirillico' }, // С
+      'у': { ascii: 'y', script: 'Cirillico' }, // у
+      'х': { ascii: 'x', script: 'Cirillico' }, // х
+      'Х': { ascii: 'x', script: 'Cirillico' }, // Х
+      'ѕ': { ascii: 's', script: 'Cirillico' }, // ѕ
+      'ј': { ascii: 'j', script: 'Cirillico' }, // ј
+      'һ': { ascii: 'h', script: 'Cirillico' }, // һ
+      'ο': { ascii: 'o', script: 'Greco' },     // ο
+      'α': { ascii: 'a', script: 'Greco' },     // α
+      'ε': { ascii: 'e', script: 'Greco' },     // ε
+      'ι': { ascii: 'i', script: 'Greco' },     // ι
+      'κ': { ascii: 'k', script: 'Greco' },     // κ
+      'ν': { ascii: 'v', script: 'Greco' },     // ν
+      'ρ': { ascii: 'p', script: 'Greco' },     // ρ
+      'τ': { ascii: 't', script: 'Greco' },     // τ
+      'υ': { ascii: 'u', script: 'Greco' },     // υ
+      'ı': { ascii: 'i', script: 'Latino esteso' } // ı
+    };
+
+    // =========================================================================
+    // 2. MOTORE PUNYCODE RFC 3492 (DECODE / ENCODE BIDIREZIONALE)
+    // =========================================================================
+    const Punycode = (() => {
+      const base = 36, tMin = 1, tMax = 26, skew = 38, damp = 700, initialBias = 72, initialN = 128, delimiter = '-';
+      const regexPunycode = /^xn--/i;
+      const regexNonASCII = /[^\u0020-\u007E]/;
+      const regexSeparators = /[.。．｡]/g;
+
+      function adapt(delta, numPoints, firstTime) {
+        let k = 0;
+        delta = firstTime ? Math.floor(delta / damp) : (delta >> 1);
+        delta += Math.floor(delta / numPoints);
+        for (; delta > ((base - tMin) * tMax) >> 1; k += base) {
+          delta = Math.floor(delta / (base - tMin));
+        }
+        return Math.floor(k + (base - tMin + 1) * delta / (delta + skew));
+      }
+
+      function basicToDigit(codePoint) {
+        if (codePoint - 0x30 < 0x0A) return codePoint - 0x16;
+        if (codePoint - 0x41 < 0x1A) return codePoint - 0x41;
+        if (codePoint - 0x61 < 0x1A) return codePoint - 0x61;
+        return base;
+      }
+
+      function digitToBasic(digit) {
+        return digit + 22 + 75 * (digit < 26);
+      }
+
+      function decode(input) {
+        const output = [];
+        const inputLength = input.length;
+        let i = 0, n = initialN, bias = initialBias;
+        let basic = input.lastIndexOf(delimiter);
+        if (basic < 0) basic = 0;
+
+        for (let j = 0; j < basic; ++j) {
+          output.push(input.charCodeAt(j));
+        }
+
+        for (let index = basic > 0 ? basic + 1 : 0; index < inputLength;) {
+          const oldi = i;
+          for (let w = 1, k = base; ; k += base) {
+            if (index >= inputLength) throw new RangeError('Invalid Punycode');
+            const digit = basicToDigit(input.charCodeAt(index++));
+            if (digit >= base) throw new RangeError('Invalid Punycode');
+            i += digit * w;
+            const t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+            if (digit < t) break;
+            w *= (base - t);
+          }
+          const out = output.length + 1;
+          bias = adapt(i - oldi, out, oldi === 0);
+          n += Math.floor(i / out);
+          i %= out;
+          output.splice(i++, 0, n);
+        }
+        return String.fromCodePoint(...output);
+      }
+
+      function encode(input) {
+        const output = [];
+        const chars = Array.from(input).map(c => c.codePointAt(0));
+        let n = initialN, delta = 0, bias = initialBias;
+
+        for (const cp of chars) {
+          if (cp < 0x80) output.push(String.fromCharCode(cp));
+        }
+        const basicLength = output.length;
+        let handledCPCount = basicLength;
+        if (basicLength) output.push(delimiter);
+
+        while (handledCPCount < chars.length) {
+          let m = 0x7FFFFFFF;
+          for (const cp of chars) {
+            if (cp >= n && cp < m) m = cp;
+          }
+          delta += (m - n) * (handledCPCount + 1);
+          n = m;
+          for (const cp of chars) {
+            if (cp < n) ++delta;
+            if (cp === n) {
+              let q = delta;
+              for (let k = base; ; k += base) {
+                const t = k <= bias ? tMin : (k >= bias + tMax ? tMax : k - bias);
+                if (q < t) break;
+                const qMinusT = q - t;
+                const baseMinusT = base - t;
+                output.push(String.fromCharCode(digitToBasic(t + qMinusT % baseMinusT)));
+                q = Math.floor(qMinusT / baseMinusT);
+              }
+              output.push(String.fromCharCode(digitToBasic(q)));
+              bias = adapt(delta, handledCPCount + 1, handledCPCount === basicLength);
+              delta = 0;
+              ++handledCPCount;
+            }
+          }
+          ++delta;
+          ++n;
+        }
+        return output.join('');
+      }
+
+      function toUnicode(domain) {
+        return domain.replace(regexSeparators, '.').split('.').map(label => {
+          if (regexPunycode.test(label)) {
+            try { return decode(label.slice(4).toLowerCase()); } catch { return label; }
+          }
+          return label;
+        }).join('.');
+      }
+
+      function toASCII(domain) {
+        return domain.replace(regexSeparators, '.').split('.').map(label => {
+          return regexNonASCII.test(label) ? 'xn--' + encode(label) : label;
+        }).join('.');
+      }
+
+      return { toUnicode, toASCII };
+    })();
+
+    // =========================================================================
+    // 3. PARSING & ANALISI URL
+    // =========================================================================
+    function parseRawUrl(raw) {
+      let trimmed = raw.trim();
+      if (!trimmed) return null;
+      const hasProtocol = /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(trimmed);
+      const urlToParse = hasProtocol ? trimmed : 'https://' + trimmed;
+
+      let parsed;
+      try {
+        parsed = new URL(urlToParse);
+      } catch (e) {
+        return { error: "Formato URL non valido." };
+      }
+
+      const rawHost = parsed.hostname.toLowerCase();
+      const unicodeHost = Punycode.toUnicode(rawHost);
+      const asciiHost = Punycode.toASCII(unicodeHost);
+
+      const parts = unicodeHost.split('.').filter(Boolean);
+      const asciiParts = asciiHost.split('.').filter(Boolean);
+
+      const isIP = /^(\d{1,3}\.){3}\d{1,3}$/.test(asciiHost) || asciiHost.includes(':');
+      let regDomainUnicode = unicodeHost;
+      let regDomainAscii = asciiHost;
+      let subdomain = "";
+
+      if (!isIP && parts.length >= 2) {
+        const lastTwo = parts.slice(-2).join('.');
+        const multiTlds = ["gov.it", "co.uk", "gov.cz", "co.jp", "com.br"];
+        if (multiTlds.includes(lastTwo) && parts.length >= 3) {
+          regDomainUnicode = parts.slice(-3).join('.');
+          regDomainAscii = asciiParts.slice(-3).join('.');
+          subdomain = parts.slice(0, -3).join('.');
+        } else {
+          regDomainUnicode = parts.slice(-2).join('.');
+          regDomainAscii = asciiParts.slice(-2).join('.');
+          subdomain = parts.slice(0, -2).join('.');
+        }
+      }
+
+      const tld = asciiParts.length >= 2 ? asciiParts[asciiParts.length - 1] : "";
+
+      // Detect homoglyphs / non-ASCII characters
+      const homoglyphs = [];
+      let asciiSkeleton = "";
+      for (const ch of unicodeHost) {
+        const cp = ch.codePointAt(0);
+        if (HOMOGLYPH_MAP[ch]) {
+          const info = HOMOGLYPH_MAP[ch];
+          homoglyphs.push({
+            char: ch,
+            code: "U+" + cp.toString(16).toUpperCase().padStart(4, '0'),
+            script: info.script,
+            imitates: info.ascii
+          });
+          asciiSkeleton += info.ascii;
+        } else if (cp > 127) {
+          const norm = ch.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          homoglyphs.push({
+            char: ch,
+            code: "U+" + cp.toString(16).toUpperCase().padStart(4, '0'),
+            script: "Unicode non-ASCII",
+            imitates: norm || "?"
+          });
+          asciiSkeleton += (norm || ch);
+        } else {
+          asciiSkeleton += ch;
+        }
+      }
+
+      const skeletonParts = asciiSkeleton.split('.').filter(Boolean);
+      let skeletonRegDomain = asciiSkeleton;
+      if (!isIP && skeletonParts.length >= 2) {
+        const lastTwoSk = skeletonParts.slice(-2).join('.');
+        if (["gov.it", "co.uk", "gov.cz"].includes(lastTwoSk) && skeletonParts.length >= 3) {
+          skeletonRegDomain = skeletonParts.slice(-3).join('.');
+        } else {
+          skeletonRegDomain = skeletonParts.slice(-2).join('.');
+        }
+      }
+
+      return {
+        original: trimmed,
+        protocol: hasProtocol ? parsed.protocol.replace(':', '') : 'https (assunto)',
+        hasExplicitHttp: /^http:\/\//i.test(trimmed),
+        username: parsed.username,
+        hasAtTrick: trimmed.includes('@'),
+        unicodeHost,
+        asciiHost,
+        regDomainUnicode,
+        regDomainAscii,
+        skeletonRegDomain,
+        subdomain,
+        tld,
+        path: parsed.pathname + parsed.search + parsed.hash,
+        isIP,
+        isPunycode: asciiHost.includes('xn--') || unicodeHost !== asciiHost,
+        homoglyphs
+      };
+    }
+
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(dp[i - 1][j] + 1, dp[i][j - 1] + 1, dp[i - 1][j - 1] + cost);
+        }
+      }
+      return dp[m][n];
+    }
+
+    function runSingleAnalysis() {
+      const raw = document.getElementById('singleUrlInput').value;
+      const info = parseRawUrl(raw);
+      const container = document.getElementById('singleResult');
+
+      if (!info) {
+        container.innerHTML = `<div class="verdict warn"><div class="verdict-title">Inserisci un URL da controllare</div></div>`;
+        return;
+      }
+      if (info.error) {
+        container.innerHTML = `<div class="verdict danger"><div class="verdict-title">${info.error}</div></div>`;
+        return;
+      }
+
+      let score = 0;
+      const findings = [];
+
+      // 1. Check Official Database exact match
+      const exactOfficial = OFFICIAL_DOMAINS.find(
+        d => info.regDomainAscii === d.domain && !info.isPunycode && info.homoglyphs.length === 0
+      );
+
+      if (exactOfficial) {
+        findings.push({
+          level: 'safe',
+          text: `<strong>Dominio Ufficiale Riconosciuto:</strong> Appartiene a <strong>${exactOfficial.name}</strong> (${exactOfficial.cat}).`
+        });
+      }
+
+      // 2. Check Homoglyph collision against Official Database
+      if (info.isPunycode || info.homoglyphs.length > 0) {
+        score += 75;
+        const imitated = OFFICIAL_DOMAINS.find(d => d.domain === info.skeletonRegDomain);
+        const charDetails = info.homoglyphs.map(h => `<code>${h.char}</code> (${h.code}, ${h.script} → imita '${h.imitates}')`).join(', ');
+        findings.push({
+          level: 'danger',
+          text: `<strong>ATTACCO OMOGLIFO / PUNYCODE RILEVATO!</strong> L'utente legge <code>${info.unicodeHost}</code>, ma il vero indirizzo DNS è <code>${info.asciiHost}</code>.` +
+                (imitated ? ` <br>Sta imitando il sito ufficiale <strong>${imitated.name} (${imitated.domain})</strong>!` : '') +
+                (charDetails ? `<br>Caratteri sospetti: ${charDetails}` : '')
+        });
+      }
+
+      // 3. Check @ credential/redirect trick
+      if (info.hasAtTrick) {
+        score += 80;
+        findings.push({
+          level: 'danger',
+          text: `<strong>Trucco della chiocciola (@) rilevato!</strong> Tutto ciò che precede <code>@</code> (<code>${info.username || 'testo'}</code>) viene ignorato dal browser: verrai portato su <code>${info.asciiHost}</code>.`
+        });
+      }
+
+      // 4. Direct IP address
+      if (info.isIP) {
+        score += 70;
+        findings.push({
+          level: 'danger',
+          text: `<strong>Indirizzo IP diretto:</strong> Nessuna banca, ente pubblico o servizio legittimo chiede di accedere tramite indirizzo IP numerico (<code>${info.asciiHost}</code>).`
+        });
+      }
+
+      // 5. Brand spoofing inside subdomain
+      if (!exactOfficial && info.subdomain) {
+        const spoofedSub = OFFICIAL_DOMAINS.find(d => {
+          const brandCore = d.domain.split('.')[0];
+          return brandCore.length >= 4 && info.subdomain.includes(brandCore);
+        });
+        if (spoofedSub) {
+          score += 70;
+          findings.push({
+            level: 'danger',
+            text: `<strong>Falso brand nel sottodominio:</strong> Il link usa il nome di <strong>${spoofedSub.name}</strong> nel sottodominio (<code>${info.subdomain}</code>) per ingannarti, ma il vero dominio proprietario è <code>${info.regDomainAscii}</code>!`
+          });
+        }
+      }
+
+      // 6. Typosquatting check against Official Database
+      if (!exactOfficial && !info.isPunycode) {
+        for (const item of OFFICIAL_DOMAINS) {
+          const dist = levenshtein(info.skeletonRegDomain, item.domain);
+          if (dist > 0 && dist <= 2 && item.domain.length >= 6) {
+            score += 65;
+            findings.push({
+              level: 'danger',
+              text: `<strong>Possibile Typosquatting:</strong> Il dominio <code>${info.regDomainAscii}</code> è quasi identico al sito ufficiale <strong>${item.name}</strong> (<code>${item.domain}</code>, differenza di ${dist} caratteri).`
+            });
+            break;
+          }
+        }
+      }
+
+      // 7. High-risk TLD
+      if (HIGH_RISK_TLDS.includes(info.tld)) {
+        score += 35;
+        findings.push({
+          level: 'warn',
+          text: `<strong>Estensione ad alto rischio (.${info.tld}):</strong> Questa estensione è frequentemente abusata per campagne di phishing e siti temporanei.`
+        });
+      }
+
+      // 8. Insecure HTTP
+      if (info.hasExplicitHttp) {
+        score += 20;
+        findings.push({
+          level: 'warn',
+          text: `<strong>Connessione non cifrata (HTTP):</strong> Il sito non usa HTTPS; i dati inviati possono essere intercettati.`
+        });
+      }
+
+      if (findings.length === 0) {
+        findings.push({
+          level: 'safe',
+          text: `Nessuna anomalia tecnica o carattere omoglifo rilevato. Verifica comunque che <code>${info.regDomainAscii}</code> sia esattamente il dominio che intendevi visitare.`
+        });
+      }
+
+      score = Math.min(100, score);
+      let statusClass = 'safe';
+      let statusTitle = 'DOMINIO STRUTTURALMENTE PULITO';
+      if (score >= 55) {
+        statusClass = 'danger';
+        statusTitle = 'PERICOLO ELEVATO — PROBABILE PHISHING / TRUFFA';
+      } else if (score >= 20) {
+        statusClass = 'warn';
+        statusTitle = 'ATTENZIONE — ANOMALIE RILEVATE';
+      }
+
+      container.innerHTML = `
+        <div class="verdict ${statusClass}">
+          <div class="verdict-title">
+            <span>${statusTitle}</span>
+            <span class="risk-pill">Indice Rischio: ${score}/100</span>
+          </div>
+          <p style="font-size:0.84rem; opacity:0.9;">Controlla sempre il riquadro blu "Vero Dominio Proprietario" qui sotto.</p>
+        </div>
+
+        <div class="card">
+          <h2>Scomposizione Tecnica dell'URL</h2>
+          <div class="breakdown-grid">
+            <div class="part-box">
+              <div class="part-label">Protocollo</div>
+              <div class="part-val">${escapeHtml(info.protocol)}</div>
+            </div>
+            <div class="part-box">
+              <div class="part-label">Sottodominio (Ignorabile)</div>
+              <div class="part-val">${escapeHtml(info.subdomain || '(nessuno)')}</div>
+            </div>
+            <div class="part-box highlight-owner">
+              <div class="part-label">Vero Dominio Proprietario</div>
+              <div class="part-val">${escapeHtml(info.regDomainAscii)}</div>
+              ${info.isPunycode ? `<div style="font-size:0.74rem; color:#fca5a5; margin-top:4px;">Resa visiva Unicode: <strong>${escapeHtml(info.regDomainUnicode)}</strong></div>` : ''}
+            </div>
+            <div class="part-box">
+              <div class="part-label">Percorso Pagina</div>
+              <div class="part-val">${escapeHtml(info.path)}</div>
+            </div>
+          </div>
+
+          <ul class="findings-list">
+            ${findings.map(f => `<li class="f-${f.level}">${f.text}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 4. COMPARAZIONE DIRETTA (UFFICIALE VS SOSPETTO)
+    // =========================================================================
+    function buildVisualDiff(officialStr, suspectStr) {
+      const maxLen = Math.max(officialStr.length, suspectStr.length);
+      let html = '';
+      for (let i = 0; i < maxLen; i++) {
+        const c1 = officialStr[i] || '';
+        const c2 = suspectStr[i] || '';
+        if (!c2) continue;
+        if (c1 === c2) {
+          html += `<span class="char-same">${escapeHtml(c2)}</span>`;
+        } else {
+          html += `<span class="char-diff" title="Atteso: '${c1 || 'fine'}' | Trovato: '${c2}'">${escapeHtml(c2)}</span>`;
+        }
+      }
+      return html;
+    }
+
+    function runComparison() {
+      const offRaw = document.getElementById('officialUrlInput').value;
+      const susRaw = document.getElementById('suspectUrlInput').value;
+      const container = document.getElementById('compareResult');
+
+      const off = parseRawUrl(offRaw);
+      const sus = parseRawUrl(susRaw);
+
+      if (!off || !sus || off.error || sus.error) {
+        container.innerHTML = `<div class="verdict warn"><div class="verdict-title">Inserisci entrambi gli URL (Sito Ufficiale e Link Sospetto) per effettuare il confronto.</div></div>`;
+        return;
+      }
+
+      const identicalAscii = off.regDomainAscii === sus.regDomainAscii;
+      const identicalHost = off.asciiHost === sus.asciiHost;
+      const dist = levenshtein(off.regDomainAscii, sus.regDomainAscii);
+      const homoglyphClone = !identicalAscii && (off.skeletonRegDomain === sus.skeletonRegDomain);
+
+      let verdictClass = 'danger';
+      let title = 'DIVERSI — NON È LO STESSO SITO!';
+      let explanation = `Il dominio ufficiale è <code>${off.regDomainAscii}</code>, mentre il link sospetto appartiene a <code>${sus.regDomainAscii}</code>.`;
+
+      if (identicalAscii && !sus.hasAtTrick) {
+        verdictClass = 'safe';
+        title = 'CORRISPONDENZA CONFERMATA — STESSO DOMINIO PROPRIETARIO';
+        explanation = `Entrambi gli indirizzi appartengono al dominio proprietario <code>${off.regDomainAscii}</code>` +
+          (!identicalHost ? ` (il link sospetto usa il sottodominio <code>${sus.unicodeHost}</code>, ma resta sotto lo stesso proprietario).` : '.');
+      } else if (homoglyphClone) {
+        verdictClass = 'danger';
+        title = 'ALLARME CLONE OMOGLIFO (CARATTERI CAMUFFATI)!';
+        explanation = `Visivamente sembrano identici (<code>${sus.unicodeHost}</code>), ma il link sospetto usa caratteri non latini (Punycode: <code>${sus.regDomainAscii}</code>) per imitare <code>${off.regDomainAscii}</code>!`;
+      } else if (sus.hasAtTrick) {
+        verdictClass = 'danger';
+        title = 'INGANNO TRAMITE SIMBOLO @ RILEVATO!';
+        explanation = `Il link sospetto contiene il nome ufficiale prima della <code>@</code>, ma reindirizza realmente a <code>${sus.asciiHost}</code>.`;
+      } else if (dist <= 3) {
+        verdictClass = 'danger';
+        title = `TYPOSQUATTING RILEVATO (Differenza di ${dist} caratteri)`;
+        explanation = `Il dominio sospetto <code>${sus.regDomainAscii}</code> imita da vicino <code>${off.regDomainAscii}</code> cambiando solo ${dist} caratteri.`;
+      }
+
+      const visualDiffHtml = buildVisualDiff(off.regDomainAscii, sus.regDomainAscii);
+
+      container.innerHTML = `
+        <div class="verdict ${verdictClass}">
+          <div class="verdict-title"><span>${title}</span></div>
+          <p style="font-size:0.86rem;">${explanation}</p>
+        </div>
+
+        <div class="card">
+          <h2>Confronto Visivo Carattere per Carattere</h2>
+          <p class="card-sub">I caratteri in verde coincidono con il dominio ufficiale; i caratteri evidenziati in rosso rappresentano le alterazioni o i codici Punycode.</p>
+
+          <div class="grid-2">
+            <div>
+              <div class="part-label">Dominio Ufficiale (Riferimento)</div>
+              <div class="diff-box" style="color:#6ee7b7;">${escapeHtml(off.regDomainAscii)}</div>
+            </div>
+            <div>
+              <div class="part-label">Dominio Sospetto (Reale DNS)</div>
+              <div class="diff-box">${visualDiffHtml}</div>
+            </div>
+          </div>
+
+          ${sus.isPunycode ? `
+            <div style="margin-top:0.85rem; padding:0.75rem; background:var(--danger-bg); border:1px solid var(--danger); border-radius:8px; font-size:0.83rem;">
+              <strong>Nota Punycode:</strong> Il browser mostra <code>${escapeHtml(sus.regDomainUnicode)}</code>, ma il server DNS risolve <code>${escapeHtml(sus.regDomainAscii)}</code>.
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 5. UI HELPERS & INIT
+    // =========================================================================
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function switchTab(tabName, btn) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabName).classList.add('active');
+      btn.classList.add('active');
+    }
+
+    function testSingle(url) {
+      document.getElementById('singleUrlInput').value = url;
+      runSingleAnalysis();
+    }
+
+    function applyPreset() {
+      const val = document.getElementById('presetSelect').value;
+      if (val) {
+        document.getElementById('officialUrlInput').value = 'https://www.' + val;
+      }
+    }
+
+    function loadDemoCompare() {
+      document.getElementById('officialUrlInput').value = 'https://www.poste.it';
+      document.getElementById('suspectUrlInput').value = 'https://www.pоstе.it/login';
+      runComparison();
+    }
+
+    // Populate dropdown and database badges
+    (function init() {
+      document.getElementById('dbCounter').textContent = `Database: ${OFFICIAL_DOMAINS.length} domini ufficiali (IT/CZ)`;
+      const select = document.getElementById('presetSelect');
+      const dbList = document.getElementById('dbList');
+
+      OFFICIAL_DOMAINS.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.domain;
+        opt.textContent = `[${item.cat}] ${item.name} (${item.domain})`;
+        select.appendChild(opt);
+
+        const badge = document.createElement('span');
+        badge.className = 'chip';
+        badge.textContent = `${item.domain} (${item.cat})`;
+        badge.onclick = () => {
+          document.querySelectorAll('.tab-btn')[0].click();
+          testSingle('https://www.' + item.domain);
+        };
+        dbList.appendChild(badge);
+      });
+    })();
+  </script>
+</body>
+</html>
